@@ -1,0 +1,9 @@
+[project]
+name = "exchange"
+pythonpath = ["."]
+test-backend = "pytest"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "src"
+]

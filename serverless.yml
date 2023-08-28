@@ -1,0 +1,63 @@
+service: exchange
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: python3.8
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${sls:stage}
+    region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  current_rates:
+    handler: src/functions.current_rates
+    events:
+      - http:
+          path: rate/current
+          method: get
+          cors: true
+  rates_comparison:
+    handler: src/functions.rates_comparison
+    events:
+      - http:
+          path: rate/compare
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    RatesDynamoDbTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: time
+            AttributeType: S
+        KeySchema:
+          - AttributeName: time
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+
+plugins:
+  - serverless-localstack
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    fileName: src/requirements.txt
+  localstack:
+    stages:
+      - local

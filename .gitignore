@@ -1,0 +1,12 @@
+.serverless
+*.pyc
+*.pyo
+node_modules
+.idea
+__pycache__
+.requirements.zip
+venv
+env
+.env*
+.*env
+.pytest_cache
